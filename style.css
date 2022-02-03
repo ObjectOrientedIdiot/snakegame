@@ -1,0 +1,16 @@
+.cell {
+    padding: 0px;
+    margin: 0px;
+    height: 24px;
+    width: 24px;
+    position: absolute;
+    background-color: black;
+}
+
+.cell.snake {
+    background-color: darkgreen;
+}
+
+.cell.fruit {
+    background-color: red;
+}
