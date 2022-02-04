@@ -1,7 +1,15 @@
-let canvasHeight = 16;
-let canvasWidth = 16;
+function waitForKey(){
+    return new Promise(function(resolve){
+        document.addEventListener('keydown', function handler(e){
+            if(e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight'){
+                document.removeEventListener('keydown', handler);
+                resolve();
+            }
+        })
+    })
+}
 
-async function game(speed){
+async function game(speed, canvasHeight, canvasWidth){
     //create grid
     let map = new Array(canvasHeight);
     for(let i=0; i<map.length; i++){
@@ -16,18 +24,32 @@ async function game(speed){
 
     const canvas = document.getElementById('canvas');
 
-    for(let y=0; y<canvasHeight; y++){
-        for(let x=0; x<canvasWidth; x++){
-            canvasArray[y][x] = document.createElement('div');
-            canvasArray[y][x].classList.add('cell');
-            
-            canvasArray[y][x].style.top = `${y*24}px`;
-            canvasArray[y][x].style.left = `${x*24}px`;
+    function draw(){
+        for(let y=0; y<canvasHeight; y++){
+            for(let x=0; x<canvasWidth; x++){
+                canvasArray[y][x] = document.createElement('div');
+                canvasArray[y][x].classList.add('cell');
 
-            canvas.appendChild(canvasArray[y][x]);
+                if(map[y][x] == "snake"){canvasArray[y][x].classList.add('snake');}
+                if(map[y][x] == "fruit"){canvasArray[y][x].classList.add('fruit');}
+                
+                canvasArray[y][x].style.top = `${y*24}px`;
+                canvasArray[y][x].style.left = `${x*24}px`;
+
+                canvas.appendChild(canvasArray[y][x]);
+            }
+        }
+    }
+    
+    function clear(){
+        for(let y=0; y<canvasHeight; y++){
+            for(let x=0; x<canvasWidth; x++){
+                canvasArray[y][x].remove();
+            }
         }
     }
 
+    draw()
     //snake body
     let snakeLength = 3; //starting size
     let snake = new Array();
@@ -39,7 +61,6 @@ async function game(speed){
         snake[i] = {x: x, y: y};
         map[y][x] = "snake";
     }
-	console.log(snake);
 
     //snake directions
     let up = 0,down = 0,left = 0,right = 0;
@@ -85,6 +106,10 @@ async function game(speed){
     }
 
     createFruit();
+
+    //wait until keypress to start game
+    await waitForKey();
+
     //game
     function update(){
 		snake = snake.slice(0,snakeLength);
@@ -96,8 +121,8 @@ async function game(speed){
         let x = head.x, y = head.y;
         let dx = right-left, dy = down-up; //delta x and y for movement
 
-        if(x+dx == prevSeg.x){dx = 0}; //cant move into previous segment
-        if(y+dy == prevSeg.y){dy = 0};
+        if(x+dx == prevSeg.x){dx *= -1}; //cant move into previous segment
+        if(y+dy == prevSeg.y){dy *= -1};
 
         let newX = x+dx, newY = y+dy;
 
@@ -110,48 +135,33 @@ async function game(speed){
         }
         
         //die?
-        if(map[newY][newX] == 'snake' || newX >= canvasWidth || newX < 0 || newY >= canvasHeight || newY < 0){clearInterval(gameloop)};
+        if(map[newY][newX] == 'snake' || newX >= canvasWidth || newX < 0 || newY >= canvasHeight || newY < 0){clearInterval(gameloop);}
 
         //update position and snake length
         snake.unshift({x: newX, y: newY});
         snake = snake.slice(0,snakeLength);
 		
         //update map
-        for(let i=0; i<map.length; i++){ //clear map
+        for(let i=0; i<map.length; i++){ //clear snake
             for(let v=0; v<map[i].length; v++){
-				map[i][v] = undefined;
+				if(map[i][v] == "snake"){map[i][v] = undefined;}
 			}
         }
 
         for(let i=0; i<snake.length; i++){
             let currentSegment = snake[i];
             map[currentSegment.y][currentSegment.x] = 'snake';
-			console.log(currentSegment);
         }
 
         //create fruit
         if(queueFruit){createFruit()};
         
-		console.log(map);
-        
         //draw array to visual grid
-        for(let ypos=0; ypos<canvasHeight; ypos++){
-            for(let xpos=0; xpos<canvasWidth; xpos++){
-                canvasArray[ypos][xpos].setAttribute('class','');
-                canvasArray[ypos][xpos].classList.add('cell');
-                if(map[ypos][xpos] === 'fruit'){
-					canvasArray[y][x].classList.add('fruit');
-				};
-
-                if(map[ypos][xpos] === 'snake'){
-					canvasArray[y][x].classList.add('snake');
-				}
-            }
-        }
-		console.log(canvasArray);
+        clear();
+        draw();
     }
 
     let gameloop = setInterval(update, speed);
 }
 
-game(500);
+game(250, 16, 16);
