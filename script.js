@@ -135,7 +135,10 @@ async function game(speed, canvasHeight, canvasWidth){
         }
         
         //die?
-        if(map[newY][newX] == 'snake' || newX >= canvasWidth || newX < 0 || newY >= canvasHeight || newY < 0){clearInterval(gameloop);}
+        if(map[newY][newX] == 'snake' || newX >= canvasWidth || newX < 0 || newY >= canvasHeight || newY < 0){
+            clearInterval(gameloop);
+            alert("Skill issue lmao");
+        }
 
         //update position and snake length
         snake.unshift({x: newX, y: newY});
@@ -162,6 +165,9 @@ async function game(speed, canvasHeight, canvasWidth){
     }
 
     let gameloop = setInterval(update, speed);
+
 }
 
-game(250, 16, 16);
+game(125, 16, 16);
+// let head = snake[0]; //snake head
+// let prevSeg = snake[1]; //segment of snake before head
